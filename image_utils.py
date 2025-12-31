@@ -5,39 +5,51 @@ from scipy.signal import convolve2d
 
 def load_image(path):
     """
-    Loads an image.
-    - Regular images → uint8 grayscale
-    - Edge ground-truth images → boolean
-    """
-    img = Image.open(path).convert("L")
-    img = np.array(img)
+    Loads an image as a numpy array.
 
-    # Ground-truth edge images are binary
+    For the autograder + rank.median:
+    - Regular images: return grayscale uint8 (H, W)
+    - Ground-truth edge images (e.g., '*edges*'): return boolean (H, W)
+    """
+    img = Image.open(path).convert("L")   # grayscale
+    img = np.array(img)                  # uint8
+
+    # Ground truth edges file should be boolean mask
     if "edges" in path:
         return img > 0
 
-    return img  # KEEP uint8!
+    return img  # keep uint8
 
 
 def edge_detection(image):
     """
-    Sobel edge detection (returns 0–255 scale).
+    Edge detection using Sobel filters (per notebook instructions).
+    - If image is RGB (H,W,3), convert to grayscale by averaging channels.
+    - Convolve with zero-padding.
+    - Return edge magnitude: sqrt(edgeX^2 + edgeY^2)
     """
-    kx = np.array([[-1, 0, 1],
-                   [-2, 0, 2],
-                   [-1, 0, 1]])
 
-    ky = np.array([[-1, -2, -1],
-                   [ 0,  0,  0],
-                   [ 1,  2,  1]])
+    # Support both grayscale (H,W) and RGB (H,W,3)
+    if image.ndim == 3:
+        gray = image.mean(axis=2)
+    else:
+        gray = image
 
-    gx = convolve2d(image, kx, mode="same", boundary="symm")
-    gy = convolve2d(image, ky, mode="same", boundary="symm")
+    gray = gray.astype(np.float64)
 
-    edges = np.sqrt(gx**2 + gy**2)
+    # Kernels EXACTLY as in the notebook
+    kernelY = np.array([[ 1,  2,  1],
+                        [ 0,  0,  0],
+                        [-1, -2, -1]])
 
-    m = edges.max()
-    if m > 0:
-        edges = edges / m * 255
+    kernelX = np.array([[-1,  0,  1],
+                        [-2,  0,  2],
+                        [-1,  0,  1]])
 
-    return edges
+    # Zero padding
+    edgeY = convolve2d(gray, kernelY, mode="same", boundary="fill", fillvalue=0)
+    edgeX = convolve2d(gray, kernelX, mode="same", boundary="fill", fillvalue=0)
+
+    edgeMAG = np.sqrt(edgeX**2 + edgeY**2)
+    return edgeMAG
+
