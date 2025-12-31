@@ -6,7 +6,7 @@ from scipy.signal import convolve2d
 def load_image(path):
     """
     Loads an image.
-    - Regular images → grayscale float
+    - Regular images → uint8 grayscale
     - Edge ground-truth images → boolean
     """
     img = Image.open(path).convert("L")
@@ -16,7 +16,7 @@ def load_image(path):
     if "edges" in path:
         return img > 0
 
-    return img.astype(np.float64)
+    return img  # KEEP uint8!
 
 
 def edge_detection(image):
