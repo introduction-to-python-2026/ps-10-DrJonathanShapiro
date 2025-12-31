@@ -34,11 +34,10 @@ def edge_detection(image):
     gx = convolve2d(image, kx, mode="same", boundary="symm")
     gy = convolve2d(image, ky, mode="same", boundary="symm")
 
-edges = np.sqrt(gx**2 + gy**2)
+    edges = np.sqrt(gx**2 + gy**2)
 
-m = edges.max()
-if m > 0:
-    edges = edges / m * 255
+    m = edges.max()
+    if m > 0:
+        edges = edges / m * 255
 
-return edges
-
+    return edges
