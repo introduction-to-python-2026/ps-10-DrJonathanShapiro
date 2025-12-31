@@ -5,18 +5,24 @@ from scipy.signal import convolve2d
 
 def load_image(path):
     """
-    Loads an image from disk and returns it as a grayscale numpy array (float).
+    Loads an image.
+    - Regular images → grayscale float
+    - Edge ground-truth images → boolean
     """
-    img = Image.open(path).convert("L")   # grayscale
-    img = np.array(img, dtype=np.float64)
-    return img
+    img = Image.open(path).convert("L")
+    img = np.array(img)
+
+    # Ground-truth edge images are binary
+    if "edges" in path:
+        return img > 0
+
+    return img.astype(np.float64)
 
 
 def edge_detection(image):
     """
-    Applies Sobel edge detection and returns the edge magnitude image.
+    Sobel edge detection (returns 0–255 scale).
     """
-    # Sobel kernels
     kx = np.array([[-1, 0, 1],
                    [-2, 0, 2],
                    [-1, 0, 1]])
@@ -30,7 +36,7 @@ def edge_detection(image):
 
     edges = np.sqrt(gx**2 + gy**2)
 
-    # Normalize for consistency
-    edges = edges / edges.max()
+    # Scale to 0–255 (IMPORTANT)
+    edges = edges / edges.max() * 255
 
     return edges
